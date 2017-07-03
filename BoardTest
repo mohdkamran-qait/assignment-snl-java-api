@@ -1,0 +1,164 @@
+package com.qainfotech.tap.training.snl.api;
+
+import java.io.*;
+import org.json.*;
+import org.testng.annotations.*;
+import static org.assertj.core.api.Assertions.*;
+import java.util.*;
+
+/**
+ * 
+ * @author mohdkamran
+ *
+ */
+public class BoardTest {
+	/**
+	 * this check the initialization of the Board
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws UnsupportedEncodingException
+	 * @throws IOException
+	 */
+	@BeforeTest
+	public void loading_Board() throws FileNotFoundException, UnsupportedEncodingException, IOException {
+		Board board = new Board();
+		board = new Board();
+		assertThat(board.getUUID().toString().length()).isNotEqualTo(0);
+	}
+
+	/**
+	 * this check whether the player registration is performing or not
+	 * 
+	 * @throws IOException
+	 * @throws PlayerExistsException
+	 * @throws GameInProgressException
+	 * @throws MaxPlayersReachedExeption
+	 */
+	@Test
+	public void registering_player()
+			throws IOException, PlayerExistsException, GameInProgressException, MaxPlayersReachedExeption {
+		Board board = new Board();
+		board.registerPlayer("P1");
+		board.registerPlayer("P2");
+		board.getData();
+		assertThat(board.getData().getJSONArray("players").length()).isEqualTo(2);
+		System.out.println(board.getData().getJSONArray("players").length());
+	}
+
+	/**
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws UnsupportedEncodingException
+	 * @throws PlayerExistsException
+	 * @throws GameInProgressException
+	 * @throws MaxPlayersReachedExeption
+	 * @throws IOException
+	 */
+	@Test
+	public void checking_already_existing_player() throws FileNotFoundException, UnsupportedEncodingException,
+			PlayerExistsException, GameInProgressException, MaxPlayersReachedExeption, IOException {
+		Board board = new Board();
+		board.registerPlayer("P1");
+		board.registerPlayer("P1");
+		board.getData();
+	}
+
+	/**
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws UnsupportedEncodingException
+	 * @throws PlayerExistsException
+	 * @throws GameInProgressException
+	 * @throws MaxPlayersReachedExeption
+	 * @throws IOException
+	 */
+	@Test
+	public void checking_max_players_in_a_game() throws FileNotFoundException, UnsupportedEncodingException,
+			PlayerExistsException, GameInProgressException, MaxPlayersReachedExeption, IOException {
+		Board board = new Board();
+		for (int index = 0; index < 4; index++)
+			board.registerPlayer("P" + index);
+
+		board.registerPlayer("P_invalid");
+
+		board.getData();
+		assertThat(board.getData().getJSONArray("players").length()).isEqualTo(4);
+
+	}
+
+	/**
+	 * 
+	 * @throws NoUserWithSuchUUIDException
+	 * @throws IOException
+	 * @throws PlayerExistsException
+	 * @throws GameInProgressException
+	 * @throws MaxPlayersReachedExeption
+	 */
+	@Test
+	public void deleting_the_player() throws NoUserWithSuchUUIDException, IOException, PlayerExistsException,
+			GameInProgressException, MaxPlayersReachedExeption {
+		Board board = new Board();
+		UUID uuid;
+		JSONArray player_info = new JSONArray();
+		for (int index = 0; index < 4; index++) {
+			board.registerPlayer("P" + index);
+			JSONObject singlePlayer = player_info.getJSONObject(index);
+
+			if (singlePlayer.get("name").equals("P1")) {
+				uuid = (UUID) singlePlayer.get("uuid");
+				System.out.println(uuid);
+			}
+
+		}
+
+	}
+
+	/**
+	 * 
+	 * @throws NoUserWithSuchUUIDException
+	 * @throws IOException
+	 */
+	@Test
+	public void deleting_the_player_throws_NoUserWithSuchUUIDException()
+			throws NoUserWithSuchUUIDException, IOException {
+		Board board = new Board();
+		UUID uuid = null;
+		board.deletePlayer(uuid);
+
+	}
+
+	/**
+	 * 
+	 * @throws FileNotFoundException
+	 * @throws UnsupportedEncodingException
+	 * @throws PlayerExistsException
+	 * @throws GameInProgressException
+	 * @throws MaxPlayersReachedExeption
+	 * @throws IOException
+	 * @throws InvalidTurnException
+	 * @throws NoUserWithSuchUUIDException
+	 */
+	@Test()
+	public void should_throw_GameInProgressException()
+			throws FileNotFoundException, UnsupportedEncodingException, PlayerExistsException, GameInProgressException,
+			MaxPlayersReachedExeption, IOException, InvalidTurnException, NoUserWithSuchUUIDException {
+		Board board = new Board();
+		board.registerPlayer("P1");
+		board.registerPlayer("P2");
+		board.registerPlayer("P3");
+
+		List<UUID> uuid = new ArrayList<>();
+
+		JSONObject dataObject = board.getData();
+		JSONArray playerArray = (JSONArray) dataObject.get("players");
+
+		for (int index = 0; index < playerArray.length(); index++) {
+			JSONObject player = (JSONObject) playerArray.get(index);
+			uuid.add((UUID) player.get("uuid"));
+		}
+		board.rollDice(uuid.get(0));
+		board.registerPlayer("P4");
+
+	}
+
+}
